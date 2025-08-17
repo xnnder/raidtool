@@ -1,5 +1,5 @@
 {
-  "name": "icsu-raidtool",
+  "name": "raidtool",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
