@@ -346,34 +346,45 @@ async function scrapper() {
     console.clear();
     drawAsciiArt(asciiArt);
     drawLine();
+
     const guildId = await questionAsync("Введите ID сервера: ");
     const guildDir = path.join('scrapped', guildId);
     if (!fs.existsSync(guildDir)) fs.mkdirSync(guildDir, { recursive: true });
-    
+
     const userMentions = new Set();
-    
-    for (const token of state.validTokens) {
+
+    for (const { token, username } of state.validTokens) {
         try {
             const client = new Client({
-                checkUpdate: false
+                checkUpdate: false,
+                intents: ["Guilds", "GuildMembers"]
             });
-            
+
             await client.login(token);
             const guild = client.guilds.cache.get(guildId);
+
             if (guild) {
+                log('~', `@${username} собирает участников с "${guild.name}"...`);
                 const members = await guild.members.fetch();
                 members.forEach(m => userMentions.add(`<@${m.user.id}>`));
+            } else {
+                log('-', `@${username} не нашёл сервер ${guildId}`);
             }
+
             client.destroy();
         } catch (e) {
-            log('-', `Ошибка: ${e.message}`);
+            log('-', `Ошибка у @${username}: ${e.message}`);
         }
     }
-    
+
     if (userMentions.size > 0) {
-        fs.writeFileSync(path.join(guildDir, 'users.txt'), [...userMentions].join('\n'));
-        log('+', `Сохранено ${userMentions.size} упоминаний`);
+        const outPath = path.join(guildDir, 'users.txt');
+        fs.writeFileSync(outPath, [...userMentions].join('\n'), 'utf8');
+        log('+', `Сохранено ${userMentions.size} упоминаний → ${outPath}`);
+    } else {
+        log('-', "Никого не удалось собрать (проверьте токены и права).");
     }
+
     await questionAsync("Нажмите Enter чтобы продолжить...");
 }
 
@@ -1010,4 +1021,5 @@ function questionAsync(prompt) {
 main().catch(err => {
     console.error(colors.red + "[!] Критическая ошибка: " + err.message + colors.reset);
     process.exit(1);
+
 });
