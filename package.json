@@ -11,5 +11,6 @@
   "description": "",
   "dependencies": {
     "discord.js-selfbot-v13": "^3.7.0"
+    "uuid": "^13.0.0"
   }
 }
